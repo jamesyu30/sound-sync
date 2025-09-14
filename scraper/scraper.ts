@@ -4,17 +4,24 @@ import type { Request, Response } from "express";
 import dotenv from "dotenv";
 import fs from "fs";
 import path from "path";
-import { format } from "fast-csv";
+import { format, parse } from "fast-csv";
 import { fileURLToPath } from "url";
+import { insertSong, getSongId, getIdFromSong, insertPlaylist, addPairs, getCooccurrences } from "../db.ts";
 
-dotenv.config(); 
-const app = express()
-const PORT = process.env.PORT || 4000
+dotenv.config();
+const app = express();
+const PORT = process.env.PORT || 4000;
 app.use(cors());
 
 let spotifyToken: string | null = null;
 let tokenExpiry: number = 0;
-const SCRAPE = true; //set to false to skip scraping and just run server
+const SCRAPE = false; //set to false to skip scraping and just run server
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const filePath = path.join(__dirname, "../data/playlists2.csv");
+const filePathRead = path.join(__dirname, "../data/playlists.csv");
+const filePathReadTest = path.join(__dirname, "../data/playlists2.csv");
 
 //top 250 spotify genres from https://everynoise.com/everynoise1d.html
 const searchTerms: string[] = [
@@ -210,97 +217,97 @@ const searchTerms: string[] = [
   // "pagode novo",
   // "soundtrack",
   // "funk metal",
-  "grunge",
-  "french pop",
-  "emo rap",
-  "salsa",
-  "rain",
-  "r&b francais",
-  "lgbtq+ hip hop",
-  "turkish rock",
-  "memphis hip hop",
-  "mariachi",
-  "brostep",
-  "classic soul",
-  "funk mtg",
-  "trap triste",
-  "dirty south rap",
-  "melodic metalcore",
-  "blues rock",
-  "alternative hip hop",
-  "melancholia",
-  "pop soul",
-  "brazilian gospel",
-  "outlaw country",
-  "orchestral soundtrack",
-  "dutch house",
-  "turkish hip hop",
-  "queens hip hop",
-  "christian alternative rock",
-  "mandopop",
-  "lounge",
-  "worship",
-  "dfw rap",
-  "electronica",
-  "pixel",
-  "trap italiana",
-  "pop reggaeton",
-  "new orleans rap",
-  "otacore",
-  "rock-and-roll",
-  "funk",
-  "quiet storm",
-  "motown",
-  "japanese teen pop",
-  "brazilian hip hop",
-  "gruperas inmortales",
-  "kleine hoerspiel",
-  "indie poptimism",
-  "dream pop",
-  "rap conscient",
-  "neo-synthpop",
-  "funk rock",
-  "easy listening",
-  "bolero",
-  "g funk",
-  "barbadian pop",
-  "progressive rock",
-  "eurodance",
-  "hardcore hip hop",
-  "bachata",
-  // additional general genres
-  "reggae",
-  "jazz",
-  "blues",
-  "gospel",
-  "techno",
-  "trance",
-  "drum and bass",
-  "ambient",
-  "chillout",
-  "lo-fi",
-  "grime",
-  "drill",
-  "synthwave",
-  "vaporwave",
-  "ska",
-  "world",
-  "video game",
-  "new age",
-  "dubstep", 
-  // moods
-  "chill",
-  "happy",
-  "sad",
-  "energetic",
-  "romantic",
-  "motivational",
-  "party",
-  "focus",
-  "sleep",
-  "workout",
-  "travel",
-  "summer",
+  // "grunge",
+  // "french pop",
+  // "emo rap",
+  // "salsa",
+  // "rain",
+  // "r&b francais",
+  // "lgbtq+ hip hop",
+  // "turkish rock",
+  // "memphis hip hop",
+  // "mariachi",
+  // "brostep",
+  // "classic soul",
+  // "funk mtg",
+  // "trap triste",
+  // "dirty south rap",
+  // "melodic metalcore",
+  // "blues rock",
+  // "alternative hip hop",
+  // "melancholia",
+  // "pop soul",
+  // "brazilian gospel",
+  // "outlaw country",
+  // "orchestral soundtrack",
+  // "dutch house",
+  // "turkish hip hop",
+  // "queens hip hop",
+  // "christian alternative rock",
+  // "mandopop",
+  // "lounge",
+  // "worship",
+  // "dfw rap",
+  // "electronica",
+  // "pixel",
+  // "trap italiana",
+  // "pop reggaeton",
+  // "new orleans rap",
+  // "otacore",
+  // "rock-and-roll",
+  // "funk",
+  // "quiet storm",
+  // "motown",
+  // "japanese teen pop",
+  // "brazilian hip hop",
+  // "gruperas inmortales",
+  // "kleine hoerspiel",
+  // "indie poptimism",
+  // "dream pop",
+  // "rap conscient",
+  // "neo-synthpop",
+  // "funk rock",
+  // "easy listening",
+  // "bolero",
+  // "g funk",
+  // "barbadian pop",
+  // "progressive rock",
+  // "eurodance",
+  // "hardcore hip hop",
+  // "bachata",
+  // // additional general genres
+  // "reggae",
+  // "jazz",
+  // "blues",
+  // "gospel",
+  // "techno",
+  // "trance",
+  // "drum and bass",
+  // "ambient",
+  // "chillout",
+  // "lo-fi",
+  // "grime",
+  // "drill",
+  // "synthwave",
+  // "vaporwave",
+  // "ska",
+  // "world",
+  // "video game",
+  // "new age",
+  // "dubstep", 
+  // // moods
+  // "chill",
+  // "happy",
+  // "sad",
+  // "energetic",
+  // "romantic",
+  // "motivational",
+  // "party",
+  // "focus",
+  // "sleep",
+  // "workout",
+  // "travel",
+  // "summer",
   "winter",
   "fall",
   "spring",
@@ -321,6 +328,7 @@ const searchTerms: string[] = [
   "2020s"
 ];
 
+//testing array
 const searchTerms2:string[] = [
   "pop",
 ];
@@ -383,14 +391,11 @@ function sleep(ms: number) {
   return new Promise<void>(resolve => setTimeout(resolve, ms));
 }
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const filePath = path.join(__dirname, "../data/playlists2.csv");
 let totalSongs: number = 0;
 
 async function getAllTracks() {
   const playlistMap = new Map<string, string>(); // id -> name
-  for (const term of searchTerms2){
+  for (const term of searchTerms){
     const playlists = await searchPlaylists(term); // returns [name, id] pairs
     playlists.forEach((p: any) => {
       const [name, id] = p;
@@ -426,6 +431,127 @@ async function getAllTracks() {
   console.log(`Total songs across all playlists: ${totalSongs}`);
 }
 
+function detectDuplicates(path: string){
+  const seen = new Set<string>();
+  let count:number = 0;
+  try{
+    fs.createReadStream(path)
+        .pipe(parse({ headers: true })) 
+        .on('error', error => {
+            console.error('Error parsing CSV:', error);
+        })
+        .on('data', row => {
+            //console.log('Processed row:', row);
+            const id = row.playlistId;
+            if (seen.has(id)) {
+                console.log(`Duplicate playlist found: ${id}`);
+                count++;
+            } else {
+                seen.add(id);
+            }
+        })
+        .on('end', (rowCount:number) => {
+            console.log(`Total duplicate playlists found: ${count}`);
+            console.log(`Finished parsing CSV. Total rows processed: ${rowCount}`);
+        });
+  } catch(err){
+    console.error("detectDuplicates error:", err);
+  }
+}
+
+function countSongs(path: string){
+  let total:number = 0;
+  try{
+    fs.createReadStream(path)
+        .pipe(parse({ headers: true }))
+        .on('data', row => {
+            const trackIds = row.trackIds.split(";");
+            total += trackIds.length;
+        })
+        .on('end', () => {
+            console.log(`Total songs found: ${total}`);
+        });
+  } catch(err){
+    console.error("countSongs error:", err);
+  }
+}
+const cooccur = new Map();
+
+function makeKey(songA:string, songB:string):string{
+  return songA < songB ? `${songA}|${songB}` : `${songB}|${songA}`; //ensures order doesn't matter
+}
+
+function increment(songA:string, songB:string){
+  const key:string = makeKey(songA, songB);
+  cooccur.set(key, (cooccur.get(key) || 0) + 1);
+}
+
+function processPlaylist(songs:string[]) {
+  for (let i = 0; i < songs.length; i++) {
+    for (let j = i + 1; j < songs.length; j++) {
+      increment(songs[i], songs[j]);
+    }
+  }
+}
+
+async function buildModel(path: string): Promise<void> {
+  return new Promise<void>((resolve) => {
+    try {
+      fs.createReadStream(path)
+        .pipe(parse({ headers: true }))
+        .on('error', err => {
+          console.error("buildModel parse error:", err);
+        })
+        .on('data', row => {
+          try {
+            const songs = String(row.trackIds || "").split(";").map(s => s.trim()).filter(Boolean);
+            processPlaylist(songs);
+          } catch (err) {
+            console.error("row processing error:", err);
+          }
+        })
+        .on('end', (rowCount: number) => {
+          console.log(`Done building model. Rows processed: ${rowCount}`);
+          resolve();
+        });
+    } catch (err) {
+      console.error("buildModel error:", err);
+    }
+  });
+}
+
+async function saveModel(pathOut: string) {
+  console.log(`Saving model to ${pathOut} (entries=${cooccur.size})`);
+
+  const writeStream = fs.createWriteStream(pathOut, { flags: "w" });
+  const csvStream = format({ headers: ["songA", "songB", "count"], writeHeaders: true });
+  csvStream.pipe(writeStream);
+
+  try {
+    let written = 0;
+    console.log("cooccur map size:", cooccur.size);
+    for (const [key, count] of cooccur) {
+      const [songA, songB] = key.split("|");
+      const ok = csvStream.write({ songA, songB, count });
+      written++;
+      if (!ok) {
+        await new Promise<void>((resolve) => writeStream.once("drain", () => resolve()));
+      }
+    }
+    console.log(`Queued ${written} rows to CSV stream`);
+  } finally {
+    csvStream.end();
+  }
+
+  await new Promise<void>((resolve, reject) => {
+    writeStream.on("finish", () => resolve());
+    writeStream.on("error", (err) => reject(err));
+  });
+
+  console.log(`Wrote model`);
+}
+
+
 app.get("/playlists", async (req: Request, res: Response) => {
   const query = req.query.q as string;
   if (!query) return res.status(400).send("Missing query param q");
@@ -450,10 +576,6 @@ app.get("/playlists/tracks", async (req: Request, res: Response) => {
   }
 });
 
-//PROCESS FOR GETTING DATA
-// searchplaylists with genres/other qualifiers to get playlist IDs
-// call gettracks with each playlist ID to get track IDs
-// ??? (maybe: flatten the array of track IDs and remove duplicates)
 app.get('/', (req: Request, res: Response) => {
   res.send('Hello World!')
 })
@@ -463,3 +585,50 @@ app.listen(PORT, () => {
 })
 
 if(SCRAPE) getAllTracks().catch(err => console.error("getAllTracks error:", err));
+//detectDuplicates(filePathRead); //273 duplicates/5409 rows
+//countSongs(filePathReadTest); //454740 songs
+
+// (async () => {
+//   try {
+//     await buildModel(filePathReadTest);
+//     await saveModel(path.join(__dirname, "../data/cooccur_model.csv"));
+//   } catch (err) {
+//     console.error("build/save error:", err);
+//   }
+// })();
+
+// buildModel(filePathReadTest);
+// saveModel(path.join(__dirname, "../data/cooccur_model.csv")).catch(err => console.error("saveModel error:", err));
+
+async function playlistsToDB(path: string): Promise<void> {
+  return new Promise<void>((resolve) => {
+    try {
+      fs.createReadStream(path)
+      .pipe(parse({ headers: true }))
+      .on('error', err => {
+        console.error("playlistsToDB parse error:", err);
+      })
+
+      .on('data', async (row) => {
+        try {
+          const playlistName = row.playlistName;
+          const playlistId = row.playlistId;
+          const trackIds = String(row.trackIds || "").split(";").map((s: string) => s.trim()).filter(Boolean);
+          insertPlaylist(playlistName, playlistId, trackIds).catch(err => console.error("insertPlaylist error:", err));
+        }catch (err) {
+          console.error("row processing error:", err);
+        }
+      })
+
+      .on('end', async () => {
+        console.log(`Done processing playlists to DB`);
+        resolve();
+      });
+
+    }catch (err) {
+      console.error("playlistsToDB error:", err);
+    }
+  });
+}
+
+//playlistsToDB(filePathRead);
