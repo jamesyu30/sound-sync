@@ -6,7 +6,7 @@ import fs from "fs";
 import path from "path";
 import { format, parse } from "fast-csv";
 import { fileURLToPath } from "url";
-import { insertSong, getSongId, getIdFromSong, insertPlaylist, addPairs, getCooccurrences } from "../db.ts";
+import { insertSong, getSongId, getIdFromSong, insertPlaylist, addPairs, getCooccurrences, getSongsAfter, insertSpotifySongs } from "../db.ts";
 
 dotenv.config();
 const app = express();
@@ -25,57 +25,57 @@ const filePathReadTest = path.join(__dirname, "../data/playlists2.csv");
 
 //top 250 spotify genres from https://everynoise.com/everynoise1d.html
 const searchTerms: string[] = [
-  // "pop",
-  // "rap",
-  // "rock",
-  // "urbano latino",
-  // "hip hop",
-  // "trap latino",
-  // "reggaeton",
-  // "dance pop",
-  // "pop rap",
-  // "modern rock",
-  // "pov: indie",
-  // "musica mexicana",
-  // "latin pop",
-  // "classic rock",
-  // "filmi",
-  // "permanent wave",
-  // "trap",
-  // "alternative metal",
-  // "k-pop",
-  // "r&b",
-  // "corrido",
-  // "canadian pop",
-  // "norteno",
-  // "sierreno",
-  // "album rock",
-  // "soft rock",
-  // "pop dance",
-  // "sad sierreno",
-  // "edm",
-  // "hard rock",
-  // "contemporary country",
-  // "mellow gold",
-  // "uk pop",
-  // "melodic rap",
-  // "modern bollywood",
-  // "alternative rock",
-  // "banda",
-  // "post-grunge",
-  // "corridos tumbados",
-  // "sertanejo universitario",
-  // "nu metal",
-  // "country",
-  // "art pop",
-  // "atl hip hop",
-  // "urban contemporary",
-  // "sertanejo",
-  // "southern hip hop",
-  // "singer-songwriter",
-  // "reggaeton colombiano",
-  // "arrocha",
-  // "french hip hop",
+  "pop",
+  "rap",
+  "rock",
+  "urbano latino",
+  "hip hop",
+  "trap latino",
+  "reggaeton",
+  "dance pop",
+  "pop rap",
+  "modern rock",
+  "pov: indie",
+  "musica mexicana",
+  "latin pop",
+  "classic rock",
+  "filmi",
+  "permanent wave",
+  "trap",
+  "alternative metal",
+  "k-pop",
+  "r&b",
+  "corrido",
+  "canadian pop",
+  "norteno",
+  "sierreno",
+  "album rock",
+  "soft rock",
+  "pop dance",
+  "sad sierreno",
+  "edm",
+  "hard rock",
+  "contemporary country",
+  "mellow gold",
+  "uk pop",
+  "melodic rap",
+  "modern bollywood",
+  "alternative rock",
+  "banda",
+  "post-grunge",
+  "corridos tumbados",
+  "sertanejo universitario",
+  "nu metal",
+  "country",
+  "art pop",
+  "atl hip hop",
+  "urban contemporary",
+  "sertanejo",
+  "southern hip hop",
+  "singer-songwriter",
+  "reggaeton colombiano",
+  "arrocha",
+  "french hip hop",
   // "colombian pop",
   // "alt z",
   // "country road",
@@ -118,7 +118,7 @@ const searchTerms: string[] = [
   // "modern alternative rock",
   // "indie pop",
   // "indie rock",
-  // "house",
+   "house",
   // "conscious hip hop",
   // "modern country rock",
   // "east coast hip hop",
@@ -141,7 +141,7 @@ const searchTerms: string[] = [
   // "punk",
   // "alternative r&b",
   // "grupera",
-  // "west coast rap",
+   "west coast rap",
   // "opm",
   // "boy band",
   // "psychedelic rock",
@@ -176,7 +176,7 @@ const searchTerms: string[] = [
   // "indie folk",
   // "vocal jazz",
   // "classical",
-  // "europop",
+   "europop",
   // "progressive house",
   // "art rock",
   // "yacht rock",
@@ -193,7 +193,7 @@ const searchTerms: string[] = [
   // "folk",
   // "anime",
   // "trap brasileiro",
-  // "disco",
+   "disco",
   // "pluggnb",
   // "british soul",
   // "metalcore",
@@ -211,13 +211,13 @@ const searchTerms: string[] = [
   // "british invasion",
   // "mexican rock",
   // "indie soul",
-  // "contemporary r&b",
+   "contemporary r&b",
   // "folk-pop",
   // "white noise",
   // "pagode novo",
   // "soundtrack",
   // "funk metal",
-  // "grunge",
+   "grunge",
   // "french pop",
   // "emo rap",
   // "salsa",
@@ -277,12 +277,12 @@ const searchTerms: string[] = [
   // "bachata",
   // // additional general genres
   // "reggae",
-  // "jazz",
-  // "blues",
+   "jazz",
+   "blues",
   // "gospel",
   // "techno",
   // "trance",
-  // "drum and bass",
+   "drum and bass",
   // "ambient",
   // "chillout",
   // "lo-fi",
@@ -296,36 +296,36 @@ const searchTerms: string[] = [
   // "new age",
   // "dubstep", 
   // // moods
-  // "chill",
-  // "happy",
-  // "sad",
-  // "energetic",
-  // "romantic",
-  // "motivational",
-  // "party",
-  // "focus",
-  // "sleep",
-  // "workout",
-  // "travel",
+   "chill",
+   "happy",
+   "sad",
+   "energetic",
+   "romantic",
+   "motivational",
+   "party",
+   "focus",
+   "sleep",
+   "workout",
+   "travel",
   // "summer",
-  "winter",
-  "fall",
-  "spring",
-  "morning",
-  "night",
-  "rainy day",
-  "road trip",
-  "study",
-  "meditation",
-  "holiday",
-  // time periods
-  "60s",
-  "70s",
-  "80s",
-  "90s",
-  "2000s",
-  "2010s",
-  "2020s"
+  // "winter",
+  // "fall",
+  // "spring",
+  // "morning",
+  // "night",
+  // "rainy day",
+  // "road trip",
+  // "study",
+  // "meditation",
+  // "holiday",
+  // // time periods
+  // "60s",
+  // "70s",
+  // "80s",
+  // "90s",
+  // "2000s",
+  // "2010s",
+  // "2020s"
 ];
 
 //testing array
@@ -358,7 +358,7 @@ async function getSpotifyToken(): Promise<string | null> {
 // search for playlists to get playlist ID
 async function searchPlaylists(query: string): Promise<any> {
   const token = await getSpotifyToken();
-  const res = await fetch(`https://api.spotify.com/v1/search?${new URLSearchParams({ q: query, type: "playlist", limit: "30" })}`, {
+  const res = await fetch(`https://api.spotify.com/v1/search?${new URLSearchParams({ q: query, type: "playlist", limit: "30", offset: "30" })}`, {
     headers: { Authorization: `Bearer ${token}` }
   });
   if (!res.ok) throw new Error(`Search request failed: ${res.status}`);
@@ -551,6 +551,79 @@ async function saveModel(pathOut: string) {
   console.log(`Wrote model`);
 }
 
+async function buildSpotifyDb(pageSize = 200) : Promise<void> {
+  const SPOTIFY_BATCH = 50; // spotify max ids per request
+  const REQUEST_DELAY_MS = 600;
+  let processed = 0;
+  let lastId: number | null = 332956;
+  while (true) {
+    const rows = await getSongsAfter(lastId, pageSize);
+    if (!rows || rows.length === 0) break;
+
+    for (let i = 0; i < rows.length; i += SPOTIFY_BATCH) {
+      const chunk = rows.slice(i, i + SPOTIFY_BATCH);
+
+      const rowsWithIds = chunk
+        .map((r: any) => ({ dbId: r.id, spotifyId: String(r.song_id || "").trim() }))
+        .filter((x: any) => x.spotifyId);
+
+      const ids = rowsWithIds.map((x: any) => x.spotifyId);
+      if (ids.length === 0) continue;
+
+      const params = new URLSearchParams({ ids: ids.join(",") });
+      const url = `https://api.spotify.com/v1/tracks?${params.toString()}`;
+
+      try {
+        const token = await getSpotifyToken();
+        const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
+        if (!res.ok) {
+          console.error(`Spotify /tracks failed: ${res.status} ${await res.text().catch(()=>"")}`);
+          continue;
+        }
+        const data = await res.json();
+        const tracks = Array.isArray(data.tracks) ? data.tracks : [];
+
+        const records: {
+          songName: string;
+          songId: number;
+          spotifyId: string;
+          artistName: string;
+          artistId: string;
+          albumName: string;
+        }[] = [];
+
+        for (const t of tracks) {
+          if (!t) continue; // removed/unavailable tracks can be null
+          const matched = rowsWithIds.find((x: any) => x.spotifyId === t.id);
+          if (!matched || typeof matched.dbId !== "number") continue; // skip if no DB id
+          const primaryArtist = Array.isArray(t.artists) && t.artists[0] ? t.artists[0] : { name: "", id: "" };
+          records.push({
+            songName: t.name ?? "",
+            songId: matched.dbId,
+            spotifyId: t.id,
+            artistName: primaryArtist.name ?? "",
+            artistId: primaryArtist.id ?? "",
+            albumName: t.album?.name ?? ""
+          });
+        }
+
+        if (records.length) {
+          await insertSpotifySongs(records); 
+        }
+      } catch (err) {
+        console.error("Spotify chunk processing failed:", err);
+      }
+      processed++;
+      console.log(`batch processed: ${processed}`);
+      await sleep(REQUEST_DELAY_MS);
+    }
+
+    lastId = rows[rows.length - 1].id;
+    if (rows.length < pageSize) break;
+  }
+
+  console.log("Finished building Spotify metadata DB");
+}
 
 app.get("/playlists", async (req: Request, res: Response) => {
   const query = req.query.q as string;
@@ -585,7 +658,7 @@ app.listen(PORT, () => {
 })
 
 if(SCRAPE) getAllTracks().catch(err => console.error("getAllTracks error:", err));
-//detectDuplicates(filePathRead); //273 duplicates/5409 rows
+//detectDuplicates(filePathRead); //273 duplicates/5409 rows -> 5136 unique, 6315 unique
 //countSongs(filePathReadTest); //454740 songs
 
 // (async () => {
@@ -631,4 +704,5 @@ async function playlistsToDB(path: string): Promise<void> {
   });
 }
 
-//playlistsToDB(filePathRead);
+//playlistsToDB(filePathReadTest);
+buildSpotifyDb().catch(err => console.error("buildSpotifyDb error:", err));
