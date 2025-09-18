@@ -705,4 +705,4 @@ async function playlistsToDB(path: string): Promise<void> {
 }
 
 //playlistsToDB(filePathReadTest);
-buildSpotifyDb().catch(err => console.error("buildSpotifyDb error:", err));
+//buildSpotifyDb().catch(err => console.error("buildSpotifyDb error:", err));

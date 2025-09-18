@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import type { Request, Response } from "express";
 import dotenv from "dotenv";
+import { searchSong } from "./db.ts";
 
 const app = express()
 const PORT = process.env.PORT || 4000
@@ -80,9 +81,20 @@ app.get("/api/playlists", async (req: Request, res: Response) => { //ADD :catego
       headers: { Authorization: `Bearer ${token}` }
     });
     const data = await r.json();
-    res.json(data);
+    res.json({ data });
   }catch(err){
     res.status(500).json({ error: (err as Error).message });
+  }
+});
+
+app.get("/searchsongs", async (req: Request, res: Response) => {
+const q = String(req.query.q ?? "").trim();
+  if (!q) return res.status(400).json({ error: "missing query param q" });
+  try {
+    const result = await searchSong(q);
+    res.json({ result });
+  } catch (err: any) {
+    console.error("/api/search error:", err);
   }
 });
 

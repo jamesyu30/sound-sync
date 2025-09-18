@@ -268,7 +268,7 @@ async function songPairsLength(): Promise<void> {
 }
 
 async function checkSongs(){
-    const res = await pool.query('SELECT * FROM songs WHERE id > $1 ORDER BY id ASC LIMIT 40', [220700]);
+    const res = await pool.query('SELECT * FROM songs WHERE id < $1 ORDER BY id DESC LIMIT 40', [100000000]);
     console.log('Songs:', res.rows);
 }
 
@@ -336,9 +336,93 @@ async function getPlaylistFromTrack(songId: string): Promise<string[]> {
     return res.rows.map(row => row.playlist_name);
 }
 
+async function songsLength() {
+  const res = await pool.query('SELECT count(*) FROM songs');
+  console.log("Number of songs in database:", res.rows[0].count);
+}
+
+export async function findSongsMissingInSpotify(limit = 170) {
+  const totalRes = await pool.query(`
+    SELECT COUNT(*) AS cnt
+    FROM songs s
+    LEFT JOIN spotify_songs ss ON s.id = ss.song_id
+    WHERE ss.song_id IS NULL
+  `);
+  const totalMissing = Number(totalRes.rows[0].cnt);
+
+  const sampleRes = await pool.query(
+    `SELECT s.id, s.song_id FROM songs s
+     LEFT JOIN spotify_songs ss ON s.id = ss.song_id
+     WHERE ss.song_id IS NULL
+     ORDER BY s.id ASC
+     LIMIT $1`,
+    [limit]
+  );
+
+  console.log(`Missing spotify metadata: ${totalMissing} (returning sample ${sampleRes.rows.length})`);
+  return { totalMissing, sample: sampleRes.rows };
+}
+
+export async function searchSong(query: string, limit = 15): Promise<any[]> {
+  if (!query || !query.trim()) return [];
+
+  const prefix = `${query}%`;
+  const any = `%${query}%`;
+
+  const res = await pool.query(
+    `
+    SELECT DISTINCT ON (lower(song_name))
+      song_name,
+      song_id,
+      spotify_id,
+      artist_name,
+      artist_id,
+      album_name,
+      (artist_name || ' - ' || song_name) AS display,
+      (
+        (lower(artist_name || ' - ' || song_name) = lower($1))::int * 120 + 
+        ((artist_name || ' - ' || song_name) ILIKE $2)::int * 80 +          
+        (song_name ILIKE $2)::int * 50 +                                   
+        (artist_name ILIKE $2)::int * 30 +                                
+        (song_name ILIKE $3)::int * 20 +                                   
+        (artist_name ILIKE $3)::int * 10 +                                  
+        COALESCE(similarity(lower(artist_name || ' - ' || song_name), lower($1)), 0) * 5
+      ) AS score
+    FROM spotify_songs
+    WHERE
+      (artist_name || ' - ' || song_name) ILIKE $3
+      OR song_name ILIKE $3
+      OR artist_name ILIKE $3
+    ORDER BY
+      lower(song_name), 
+      score DESC,
+      artist_name,
+      song_name
+    LIMIT $4
+    `,
+    [query, prefix, any, limit]
+  );
+
+  return res.rows;
+}
+
+async function installExtensions() {
+  try{
+    await pool.query(`CREATE EXTENSION IF NOT EXISTS pg_trgm`);
+  } catch (error) {
+    console.error('Error installing extensions:', error);
+  }
+}
+
+//THINGS FOR TOMMORROW: FIX STYLING!!!, figure out the % for query
+
+//installExtensions();
+//checkSongs();
+//findSongsMissingInSpotify().then(data => console.log(data.sample)).catch(console.error);
 //console.log(await checkSongs());
 //dropSpotify();
 //spotifyLength();
+//songsLength();
 //checkSpotifySongs();
 //getPlaylistFromTrack("6Z03HkKGowA3CgWZjuTDi6").then(data => console.log(data)).catch(console.error);
 //console.log(await getSongId(220744));
