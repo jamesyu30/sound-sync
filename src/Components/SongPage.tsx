@@ -1,5 +1,5 @@
 import Select from 'react-select'
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import music_background from '../assets/music_background.jpg';
 
 export default function SongPage() {
@@ -9,6 +9,10 @@ export default function SongPage() {
   const [selectedSong, setSelectedSong] = useState<any | null>(null);
   const [spotifyId, setSpotifyId] = useState<string | null>(null);
   const [songId, setSongId] = useState<string | null>(null);
+  const [recData, setRecData] = useState<any | null>(null);
+  const tableRef = useRef<HTMLDivElement | null>(null);
+
+  let count: number = 0;
 
   useEffect(() => {
     const getSongs = async () => {
@@ -24,8 +28,29 @@ export default function SongPage() {
     getSongs();
   }, [query]);
 
+  useEffect(() => {
+    const fetchCooccurrences = async () => {
+      if (songId) {
+        try {
+          const response = await fetch(`${import.meta.env.VITE_API_URL}/cooccurrences?songId=${encodeURIComponent(songId)}`);
+          const data = await response.json();
+          console.log("Co-occurrences data:", data);
+          setRecData(data.cooccurrences);
+        } catch (error) {
+          console.error("Error fetching co-occurrences:", error);
+        }
+      }
+    };
+    fetchCooccurrences();
+  }, [songId]);
+
+  useEffect(() => {
+    if (recData && Array.isArray(recData) && recData.length > 0) {
+      tableRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }, [recData]);
+
   const handleInputChange = (inputValue: string) => {
-    // react-select will call this with every input change
     setQuery(inputValue);
   };
 
@@ -99,8 +124,51 @@ export default function SongPage() {
 
         </div>
 
-        {/* content area */}
       </section>
+  
+      <section className="bg-gradient-to-b from-pink-200 via-purple-300 to-indigo-300 py-12 pt-0">
+      <div ref={tableRef} className="max-w-5xl mx-auto p-4">  
+      {recData && recData.length > 0 ? (
+        <>
+          <h2 className="text-4xl font-extrabold mb-4 text-center text-purple-700 pb-8">Songs often played with {selectedSong?.label}</h2>
+
+          <div className="overflow-hidden rounded-lg shadow-lg bg-gradient-to-b from-purple-100 via-pink-100 to-indigo-100">
+            <table className="min-w-full">
+              <thead>
+                <tr className="bg-gradient-to-r from-purple-300 via-pink-200 to-indigo-200 text-purple-900">
+                  <th className="py-3 px-4 text-left">#</th>
+                  <th className="py-3 px-4 text-left">Title</th>
+                  <th className="py-3 px-4 text-left">Artist</th>
+                  <th className="py-3 px-4 text-left">Album</th>
+                </tr>
+              </thead>
+
+              <tbody>
+                {recData.map((data: any, idx: number) => (
+                  <tr
+                    key={data.song_id}
+                    className="odd:bg-purple-50 even:bg-pink-50 hover:bg-indigo-50 transition-colors duration-200"
+                  >
+                    <td className="py-3 px-4 align-middle">
+                      <div className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-gradient-to-r from-purple-500 to-purple-400 text-white font-semibold">
+                        {idx + 1}
+                      </div>
+                    </td>
+                    <td className="py-3 px-4 align-middle text-purple-800 font-medium">{data.song_name}</td>
+                    <td className="py-3 px-4 align-middle text-purple-600">{data.artist_name}</td>
+                    <td className="py-3 px-4 align-middle text-purple-500">{data.album_name}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </>
+      ) : (
+        songId && <p className="text-center text-gray-600">No co-occurrence data found for this song.</p>
+      )}
+      </div>
+    </section>
     </>
   )
 }
+

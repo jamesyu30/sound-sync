@@ -2,7 +2,7 @@ import express from "express";
 import cors from "cors";
 import type { Request, Response } from "express";
 import dotenv from "dotenv";
-import { searchSong } from "./db.ts";
+import { searchSong, getCooccurrences, getCooccurrencesBySongId } from "./db.ts";
 
 const app = express()
 const PORT = process.env.PORT || 4000
@@ -96,6 +96,13 @@ const q = String(req.query.q ?? "").trim();
   } catch (err: any) {
     console.error("/api/search error:", err);
   }
+});
+
+app.get("/cooccurrences", async (req: Request, res: Response) => {
+  //const songId = String(req.query.songId ?? "").trim();
+  const songId = "3Dv1eDb0MEgF93GpLXlucZ"; //TESTING
+  const cooccurrences = await getCooccurrencesBySongId(songId, 15);
+  res.json({ cooccurrences });
 });
 
 app.get('/test', (req: Request, res: Response) => {

@@ -174,7 +174,7 @@ export async function addPairs(songIds: number[]): Promise<void> {
     }
 }
 
- export async function getCooccurrences(songId: number, limit: number): Promise<any> {
+ export async function getCooccurrences(songId: number, limit: number = 15): Promise<any> {
     try{
         const res = await pool.query(`SELECT song1_id, song2_id, count FROM song_pairs WHERE song1_id = $1 OR song2_id = $1 ORDER BY count DESC LIMIT $2`, [songId, limit]);
         return res.rows;
@@ -251,15 +251,45 @@ async function createCooccurrence(){
     }
 }
 
-async function getCooccurrencesBySongId(songId: string, limit: number): Promise<any> {
+export async function getCooccurrencesBySongId(songId: string, limit: number): Promise<any> {
     const res = await getIdFromSong(String(songId)); // get internal DB id
     if(!res) {
         console.log(`Song ID ${songId} not found in database.`);
         return;
     }
     const cooccurrences = await getCooccurrences(res, limit);
+    const playlistData = [];
+    if(cooccurrences){
+        for(const row of cooccurrences){
+          if(row.song1_id === res){
+            const songData = await pool.query('SELECT * FROM spotify_songs WHERE song_id = $1', [row.song2_id]);
+            if(songData.rows && songData.rows[0]){
+              playlistData.push({
+                song_id: songData.rows[0].song_id,
+                spotify_id: songData.rows[0].spotify_id,
+                song_name: songData.rows[0].song_name,
+                artist_name: songData.rows[0].artist_name,
+                album_name: songData.rows[0].album_name,
+                count: row.count
+              });
+            }
+          }else{
+            const songData = await pool.query('SELECT * FROM spotify_songs WHERE song_id = $1', [row.song1_id]);
+            if(songData.rows && songData.rows[0]){
+              playlistData.push({
+                song_id: songData.rows[0].song_id,
+                spotify_id: songData.rows[0].spotify_id,
+                song_name: songData.rows[0].song_name,
+                artist_name: songData.rows[0].artist_name,
+                album_name: songData.rows[0].album_name,
+                count: row.count
+              });
+            }
+          }
+        }
+    }
     //console.log(`Co-occurrences for song ID ${songId}:`, cooccurrences);
-    return cooccurrences;
+    return playlistData;
 }
 
 async function songPairsLength(): Promise<void> {
@@ -413,8 +443,6 @@ async function installExtensions() {
     console.error('Error installing extensions:', error);
   }
 }
-
-//THINGS FOR TOMMORROW: FIX STYLING!!!, figure out the % for query
 
 //installExtensions();
 //checkSongs();
