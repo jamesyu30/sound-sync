@@ -4,7 +4,7 @@ import type { Request, Response } from "express";
 import dotenv from "dotenv";
 import jwt from "jsonwebtoken";
 import cookieParser from "cookie-parser";
-import { searchSong, getCooccurrencesBySongId, getSongDataBySongId, getSongId, getSongNameFromId, createPost, getPosts, addCommentToPost, getCommentsFromPost, getSongRatings, updateUserPicks, createUser, validateLogin } from "./db.ts";
+import { searchSong, getCooccurrencesBySongId, getSongDataBySongId, getSongId, getSongNameFromId, createPost, getPosts, addCommentToPost, getCommentsFromPost, getSongRatings, updateUserPicks, createUser, validateLogin } from "./db.js";
 
 const app = express()
 const PORT = process.env.PORT || 4000

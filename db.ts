@@ -5,16 +5,24 @@ import bcrypt from "bcrypt"
 dotenv.config();
 const { Pool } = pkg;
 
-const pool = new Pool({
-  user: process.env.POSTGRES_USER,
-  host: process.env.POSTGRES_HOST,
-  database: process.env.POSTGRES_DB,
-  password: process.env.POSTGRES_PASSWORD,
-  port: process.env.POSTGRES_PORT ? Number(process.env.POSTGRES_PORT) : undefined,
-});
+const connectionString = process.env.DATABASE_URL ?? undefined;
+const isProd = process.env.NODE_ENV === "production";
+
+const pool = connectionString
+  ? new Pool({
+      connectionString,
+      ssl: isProd ? { rejectUnauthorized: false } : undefined,
+    })
+  : new Pool({
+      user: process.env.POSTGRES_USER,
+      host: process.env.POSTGRES_HOST,
+      database: process.env.POSTGRES_DB,
+      password: process.env.POSTGRES_PASSWORD,
+      port: process.env.POSTGRES_PORT ? Number(process.env.POSTGRES_PORT) : undefined,
+    });
 
 pool.on('connect', () => {
-  //console.log('Connected to the database');
+  console.log('Connected to the database');
 });
 
 async function createPairTable(){
@@ -648,7 +656,6 @@ async function getDbSize() {
   const res = await pool.query("SELECT pg_size_pretty(pg_database_size(current_database())) AS db_size");
   return res.rows[0].db_size;
 }
-
 
 //createUsersTable();
 //checkPosts();
