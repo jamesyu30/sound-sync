@@ -1,6 +1,8 @@
 import Select from 'react-select'
 import { useState, useEffect, useRef } from 'react';
 import music_background from '../assets/music_background.jpg';
+import { Link } from "react-router-dom"
+import Navbar from './Navbar.tsx';
 
 export default function SongPage() {
   const [options, setOptions] = useState<{ value: string; label: string }[]>([]);
@@ -11,8 +13,6 @@ export default function SongPage() {
   const [songId, setSongId] = useState<string | null>(null);
   const [recData, setRecData] = useState<any | null>(null);
   const tableRef = useRef<HTMLDivElement | null>(null);
-
-  let count: number = 0;
 
   useEffect(() => {
     const getSongs = async () => {
@@ -30,9 +30,9 @@ export default function SongPage() {
 
   useEffect(() => {
     const fetchCooccurrences = async () => {
-      if (songId) {
+      if (spotifyId) {
         try {
-          const response = await fetch(`${import.meta.env.VITE_API_URL}/cooccurrences?songId=${encodeURIComponent(songId)}`);
+          const response = await fetch(`${import.meta.env.VITE_API_URL}/cooccurrences?songId=${encodeURIComponent(spotifyId)}`);
           const data = await response.json();
           console.log("Co-occurrences data:", data);
           setRecData(data.cooccurrences);
@@ -42,7 +42,7 @@ export default function SongPage() {
       }
     };
     fetchCooccurrences();
-  }, [songId]);
+  }, [spotifyId]);
 
   useEffect(() => {
     if (recData && Array.isArray(recData) && recData.length > 0) {
@@ -54,21 +54,26 @@ export default function SongPage() {
     setQuery(inputValue);
   };
 
-  const handleChange = (selectedOption: any) => {
-    // console.log("handleChange called with:", selectedOption.value);
+  const handleButton = (selectedOption: any) => {
+    // console.log("handleButton called with:", selectedOption);
     const valid = selectedOption && selectedOption.value;
-    setSongId(valid ? selectedOption.value[0] : null);
-    setSpotifyId(valid ? selectedOption.value[1] : null);
     setSelectedSong(valid ? selectedOption : null);
-    // console.log("Selected option:", valid ? selectedOption : "invalid/cleared");
-  }
+  };
+
+  const handleChange = () => {
+    // console.log("handleChange called with:", selectedOption.value);
+    if (!selectedSong?.value) return;
+    setSongId(selectedSong.value[0]);
+    setSpotifyId(selectedSong.value[1]);
+  };
+
 
   return (
     <>
+      <Navbar />
       <section className="flex flex-col items-center">
-        {/* background hero — 100% of viewport height */}
         <div
-          className="relative w-full h-[100vh] bg-center bg-cover flex items-center justify-start flex-col pt-20 md:pt-28"
+          className="relative w-full h-full bg-center bg-cover flex items-center justify-start flex-col pt-20 md:pt-28 min-h-screen"
           style={{ backgroundImage: `url(${music_background})` }}
         >
          
@@ -86,7 +91,7 @@ export default function SongPage() {
             isSearchable={true}
             options={options}
             onInputChange={handleInputChange}
-            onChange={handleChange}
+            onChange={handleButton}
             isLoading={isLoading}
             backspaceRemovesValue={true}
             tabSelectsValue={true}
@@ -113,7 +118,7 @@ export default function SongPage() {
           <div className="mt-3 text-center">
             <button
               className="px-6 py-3 my-8 bg-gradient-to-r from-purple-600 to-purple-500 text-white rounded-lg hover:from-purple-700 hover:to-purple-600 disabled:opacity-60 text-lg font-semibold shadow-lg w-full md:w-auto transition-transform transform active:scale-95"
-              onClick={() => { /* submit handler */ }}
+              onClick={handleChange}
               disabled={isLoading || !selectedSong?.value}
             >
               {isLoading ? "Searching..." : "Get Recommendations"}
@@ -125,9 +130,12 @@ export default function SongPage() {
         </div>
 
       </section>
-  
-      <section className="bg-gradient-to-b from-pink-200 via-purple-300 to-indigo-300 py-12 pt-0">
-      <div ref={tableRef} className="max-w-5xl mx-auto p-4">  
+
+      {recData && recData.length > 0 ? (
+       <section
+        className={`bg-gradient-to-b from-pink-200 via-purple-300 to-indigo-300 py-12 pt-0 transition-colors duration-300`}
+      >
+      <div ref={tableRef} className="max-w-5xl mx-auto p-4">
       {recData && recData.length > 0 ? (
         <>
           <h2 className="text-4xl font-extrabold mb-4 text-center text-purple-700 pb-8">Songs often played with {selectedSong?.label}</h2>
@@ -154,8 +162,16 @@ export default function SongPage() {
                         {idx + 1}
                       </div>
                     </td>
-                    <td className="py-3 px-4 align-middle text-purple-800 font-medium">{data.song_name}</td>
-                    <td className="py-3 px-4 align-middle text-purple-600">{data.artist_name}</td>
+                    <td className="py-3 px-4 align-middle text-purple-600">
+                      <Link to={`/songs/${data.song_id}`} className="hover:underline cursor-pointer block">
+                        {data.song_name}
+                      </Link>
+                    </td>
+                    <td className="py-3 px-4 align-middle text-purple-600">
+                      <Link to={`/artists/${data.artist_id}`} className="hover:underline cursor-pointer block">
+                      {data.artist_name}
+                      </Link>
+                      </td>
                     <td className="py-3 px-4 align-middle text-purple-500">{data.album_name}</td>
                   </tr>
                 ))}
@@ -168,6 +184,7 @@ export default function SongPage() {
       )}
       </div>
     </section>
+      ) : null}
     </>
   )
 }

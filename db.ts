@@ -1,6 +1,6 @@
 import dotenv from 'dotenv';
-import { get } from 'http';
 import pkg from 'pg';
+import bcrypt from "bcrypt"
 
 dotenv.config();
 const { Pool } = pkg;
@@ -54,12 +54,67 @@ async function createSpotifyTable(){
     )`)
 }
 
+async function createPostTable(){
+ await pool.query(
+      `CREATE TABLE IF NOT EXISTS posts (
+         id SERIAL PRIMARY KEY,
+         title TEXT NOT NULL,
+         content TEXT NOT NULL,
+         song_id INTEGER REFERENCES songs(id),
+         song_name TEXT,
+         artist_name TEXT,
+         author TEXT NOT NULL,
+         author_id INTEGER NOT NULL,
+         rating NUMERIC(3,1) DEFAULT 0 CHECK (rating >= 0 AND rating <= 10),
+         comments_count INTEGER DEFAULT 0,
+         created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+       )`
+    );
+}
+
+async function createCommentsTable() {
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS comments (
+      id SERIAL PRIMARY KEY,
+      post_id INTEGER NOT NULL REFERENCES posts(id) ON DELETE CASCADE,
+      author TEXT,
+      author_id INTEGER,
+      content TEXT NOT NULL,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+    )
+  `);
+}
+
+async function createUserPicksTable() {
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS user_picks (
+      song_id INTEGER NOT NULL PRIMARY KEY REFERENCES songs(id),
+      total_rating NUMERIC(12,1) DEFAULT 0 CHECK (total_rating >= 0),
+      posts_count INTEGER NOT NULL DEFAULT 0,
+      avg_rating NUMERIC(4,1) NOT NULL DEFAULT 0
+    )`);
+}
+
+async function createUsersTable() {
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS users (
+      id SERIAL PRIMARY KEY,
+      username TEXT UNIQUE NOT NULL,
+      password TEXT NOT NULL
+    )`);
+}
+
 async function initializeDatabase() {
   try {
     await createSongTable();
     await createPlaylistTable();
     await createPairTable();
     await createSpotifyTable();
+    await createPostTable();
+    await createCommentsTable();
+    await createUserPicksTable();
+    await createUsersTable();
+    console.log('Database initialized successfully');
   } catch (error) {
     console.error('Error initializing database:', error);
   }
@@ -220,6 +275,22 @@ async function dropSpotify() {
     await pool.query('DROP TABLE IF EXISTS spotify_songs');
 }
 
+async function dropPosts() {
+    await pool.query('DROP TABLE IF EXISTS posts');
+}
+
+async function dropComments() {
+    await pool.query('DROP TABLE IF EXISTS comments');
+}
+
+async function dropUserPicks() {
+    await pool.query('DROP TABLE IF EXISTS user_picks');
+}
+
+async function dropUsers() {
+    await pool.query('DROP TABLE IF EXISTS users');
+}
+
 async function getPlaylistIds(): Promise<string[]> {
     const res = await pool.query('SELECT playlist_id FROM playlists');
     return res.rows.map(row => row.playlist_id);
@@ -270,6 +341,7 @@ export async function getCooccurrencesBySongId(songId: string, limit: number): P
                 song_name: songData.rows[0].song_name,
                 artist_name: songData.rows[0].artist_name,
                 album_name: songData.rows[0].album_name,
+                artist_id: songData.rows[0].artist_id,
                 count: row.count
               });
             }
@@ -282,6 +354,7 @@ export async function getCooccurrencesBySongId(songId: string, limit: number): P
                 song_name: songData.rows[0].song_name,
                 artist_name: songData.rows[0].artist_name,
                 album_name: songData.rows[0].album_name,
+                artist_id: songData.rows[0].artist_id,
                 count: row.count
               });
             }
@@ -436,6 +509,12 @@ export async function searchSong(query: string, limit = 15): Promise<any[]> {
   return res.rows;
 }
 
+//song data from internal song id
+export async function getSongDataBySongId(songId: number): Promise<any | null> {
+  const res = await pool.query(`SELECT * FROM spotify_songs WHERE song_id = $1`, [songId]);
+  return res.rows && res.rows[0] ? res.rows[0] : null;
+}
+
 async function installExtensions() {
   try{
     await pool.query(`CREATE EXTENSION IF NOT EXISTS pg_trgm`);
@@ -444,22 +523,152 @@ async function installExtensions() {
   }
 }
 
-//installExtensions();
+export async function createPost(title: string, content: string, author: string, authorId: number, rating: number, songId: number, song_name: string, artist_name: string): Promise<void> {
+  await pool.query(`INSERT INTO posts (title, content, author, author_id, rating, song_id, song_name, artist_name) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`, [title, content, author, authorId, rating, songId, song_name, artist_name]);
+}
+
+export async function getPosts(query?:string): Promise<any[]> {
+  if (!query){
+    const res = await pool.query('SELECT id, title, song_name, artist_name, content, song_id, author, rating, comments_count, created_at FROM posts ORDER BY created_at DESC LIMIT 50');
+    return res.rows;
+  }
+  const res = await pool.query(`SELECT id, title, song_name, artist_name, content, song_id, author, rating, comments_count, created_at FROM posts WHERE (artist_name || ' - ' || song_name) ILIKE $1 ORDER BY created_at DESC LIMIT 50`, [`${query}%`]);
+  return res.rows;
+}
+
+export async function addCommentToPost(postId: number, content: string, author: string, authorId: number): Promise<void> {
+  if(postId == null || !content || !author || typeof authorId !== "number"){
+    throw new Error("Missing required fields: postId, content, author, or authorId");
+  }
+  await pool.query(
+    `INSERT INTO comments (post_id, content, author, author_id) 
+     VALUES ($1, $2, $3, $4) 
+     RETURNING id, created_at`,
+    [postId, content, author, authorId]
+  );
+
+  await pool.query(
+    `UPDATE posts SET comments_count = comments_count + 1 WHERE id = $1`,
+    [postId]
+  );
+}
+
+//song name from internal song id
+export async function getSongNameFromId(songId: number): Promise<any | null> {
+  const res = await pool.query('SELECT song_name, artist_name FROM spotify_songs WHERE song_id = $1', [songId]);
+  return res.rows && res.rows[0] ? res.rows[0] : null;
+}
+
+async function checkPosts(){
+  const res = await pool.query('SELECT * FROM posts ORDER BY id DESC LIMIT 20');
+  console.log('Posts:', res.rows);
+}
+
+async function checkComments(){
+  const res = await pool.query('SELECT * FROM comments ORDER BY id DESC LIMIT 20');
+  console.log('Comments:', res.rows);
+}
+
+export async function getCommentsFromPost(postId: number): Promise<any[]> {
+  const res = await pool.query('SELECT id, author, author_id, content, created_at FROM comments WHERE post_id = $1 ORDER BY created_at ASC', [postId]);
+  return res.rows;
+}
+
+export async function getSongRatings(top: number): Promise<any[]> {
+  const res = await pool.query(
+    `
+      SELECT up.song_id,
+             up.avg_rating,
+             up.posts_count,
+             ss.artist_id
+      FROM user_picks up
+      LEFT JOIN spotify_songs ss ON ss.song_id = up.song_id
+      ORDER BY up.avg_rating DESC
+      LIMIT $1
+    `,
+    [top]
+  );
+  return res.rows;
+}
+
+export async function updateUserPicks(songId: number, newRating: number): Promise<void> {
+  if (songId == null) return;
+  await pool.query(`
+    INSERT INTO user_picks (song_id, total_rating, posts_count, avg_rating)
+    VALUES ($1, $2, 1, $2)
+    ON CONFLICT (song_id)
+    DO UPDATE SET 
+      total_rating = user_picks.total_rating + EXCLUDED.total_rating,
+      posts_count = user_picks.posts_count + 1,
+      avg_rating = ROUND((user_picks.total_rating + EXCLUDED.total_rating) / (user_picks.posts_count + 1), 1)
+  `, [songId, newRating]);
+}
+
+export async function createUser(username: string, plainPassword: string): Promise<number | null> {
+  try {
+    const hash = await bcrypt.hash(plainPassword, 10);
+    const res = await pool.query(
+      'INSERT INTO users (username, password) VALUES ($1, $2) RETURNING id',
+      [username, hash]
+    );
+    return res.rows && res.rows[0] ? (res.rows[0].id as number) : null;
+  } catch (error) {
+    console.error('Error creating user:', error);
+    return null;
+  }
+}
+
+export async function validateLogin(username: string, password: string): Promise<any | null> {
+  try {
+    const res = await pool.query(
+      'SELECT id, username, password FROM users WHERE username = $1',
+      [username]
+    );
+
+    if (res.rows && res.rows[0]) {
+      const user = res.rows[0];
+      const isValid = await bcrypt.compare(password, user.password);
+      if (!isValid) return null;
+
+      const { password: pw, ...userInfo } = user;
+      return userInfo;
+    }
+  } catch (error) {
+    console.error('Error authenticating user:', error);
+  }
+  return null;
+}
+
+async function checkUsers() {
+  const res = await pool.query('SELECT id, username FROM users ORDER BY id DESC LIMIT 20');
+  console.log('Users:', res.rows);
+}
+
+async function getDbSize() {
+  const res = await pool.query("SELECT pg_size_pretty(pg_database_size(current_database())) AS db_size");
+  return res.rows[0].db_size;
+}
+
+
+//createUsersTable();
+//checkPosts();
+//dropPosts();
+//dropComments();
+//dropUserPicks();
+//dropComments();
+//dropUsers();
+//checkComments();
+//createPostTable();
+//createCommentsTable();
+//createUserPicksTable();
 //checkSongs();
-//findSongsMissingInSpotify().then(data => console.log(data.sample)).catch(console.error);
-//console.log(await checkSongs());
-//dropSpotify();
 //spotifyLength();
 //songsLength();
 //checkSpotifySongs();
 //getPlaylistFromTrack("6Z03HkKGowA3CgWZjuTDi6").then(data => console.log(data)).catch(console.error);
 //console.log(await getSongId(220744));
-//dropPlaylist();
-//initializeDatabase();
 //listTables();
 //createSpotifyTable();
-//checkPlaylists();
-//getPlaylistsLength();
 //insertIntoSongs();
 //getNumberOfSongs(); //310431 unique songs
 //createCooccurrence();

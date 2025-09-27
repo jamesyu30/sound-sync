@@ -17,6 +17,8 @@ let spotifyToken: string | null = null;
 let tokenExpiry: number = 0;
 const SCRAPE = false; //set to false to skip scraping and just run server
 
+console.log("Starting scraper...");
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const filePath = path.join(__dirname, "../data/playlists2.csv");
