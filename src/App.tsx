@@ -8,12 +8,14 @@ function App() {
 
   useEffect(() => {
     const fetchNewReleases = async () => {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/newreleases`)
-      const data = await response.json()
-      console.log("New Releases:", data)
-      setNewReleases(data.filtered || [])
+      const res = await fetch(`${import.meta.env.VITE_API_URL ?? ''}/api/newreleases`, { credentials: 'include' })
+      const text = await res.text()
+      console.log('RAW RESPONSE TEXT:', text.slice(0, 500))
+      let payload = null
+      try { payload = JSON.parse(text) } catch (e) { console.error('JSON parse failed', e); }
+      console.log('PARSED PAYLOAD:', payload)
+      setNewReleases((payload && payload.filtered) || [])
     }
-
     fetchNewReleases()
   }, [])
 
