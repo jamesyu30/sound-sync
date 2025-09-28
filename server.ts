@@ -6,22 +6,42 @@ import path from "path";
 import jwt from "jsonwebtoken";
 import cookieParser from "cookie-parser";
 import { searchSong, getCooccurrencesBySongId, getSongDataBySongId, getSongId, getSongNameFromId, createPost, getPosts, addCommentToPost, getCommentsFromPost, getSongRatings, updateUserPicks, createUser, validateLogin } from "./db.js";
+dotenv.config();
 
 const app = express()
 const PORT = process.env.PORT || 4000
-dotenv.config();
 
-const ALLOWED_ORIGINS = (process.env.CLIENT_ORIGIN ?? "http://localhost:5173").split(",").map(s => s.trim());
+const ALLOWED_ORIGINS = (process.env.CLIENT_ORIGIN ?? "http://localhost:5173")
+  .split(",")
+  .map(s => s.trim())
+  .filter(Boolean)
+  .map(u => {
+    try { return new URL(u).origin; } catch { return u.replace(/\/$/, ""); }
+  });
+
 app.use(cors({
   origin: (origin, callback) => {
-    const incoming = origin ?? "(no origin)";
-    //console.log("CORS check - incoming Origin:", incoming, "allowed:", ALLOWED_ORIGINS);
     if (!origin) return callback(null, true);
-    if (ALLOWED_ORIGINS.includes(origin)) return callback(null, true);
+    let requestOrigin: string;
+    try { requestOrigin = new URL(origin).origin; } catch { requestOrigin = origin.replace(/\/$/, ""); }
+    if (ALLOWED_ORIGINS.includes(requestOrigin)) return callback(null, true);
+    console.warn("Blocked CORS origin:", origin, "normalized:", requestOrigin);
     return callback(new Error(`CORS origin '${origin}' not allowed`), false);
   },
   credentials: true,
+  methods: ["GET","POST","PUT","DELETE","OPTIONS"],
+  allowedHeaders: ["Content-Type","Authorization","Accept"],
 }));
+
+app.use((req, res, next) => {
+   if (req.method === "OPTIONS") return res.sendStatus(204);
+   next();
+});
+
+app.use((req, res, next) => {
+  //console.log(`${new Date().toISOString()} ${req.method} ${req.originalUrl} Origin:${req.headers.origin || "-"}`);
+  next();
+});
 
 app.use(express.json());
 app.use(cookieParser());
