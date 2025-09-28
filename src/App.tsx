@@ -6,18 +6,16 @@ function App() {
   const [newReleases, setNewReleases] = useState<{album_name: string, artist_name: string, release_date: string, spotify_url: string, image_url: string}[]>([])
   const [userPicks, setUserPicks] = useState<{song_id: number, avg_rating: number, song_name: string, artist_name: string, artist_id: string}[]>([])
 
-  useEffect(() => {
-    const fetchNewReleases = async () => {
-      const res = await fetch(`${import.meta.env.VITE_API_URL ?? ''}/api/newreleases`, { credentials: 'include' })
-      const text = await res.text()
-      console.log('RAW RESPONSE TEXT:', text.slice(0, 500))
-      let payload = null
-      try { payload = JSON.parse(text) } catch (e) { console.error('JSON parse failed', e); }
-      console.log('PARSED PAYLOAD:', payload)
-      setNewReleases((payload && payload.filtered) || [])
-    }
-    fetchNewReleases()
-  }, [])
+  
+
+useEffect(() => {
+  const fetchNewReleases = async () => {
+    const response = await fetch(`${import.meta.env.VITE_API_URL}/api/newreleases`)
+    const data = await response.json()
+    setNewReleases(data.filtered || [])
+  }
+  fetchNewReleases()
+}, [])
 
   useEffect(() => {
     const fetchUserPicks = async () => {
