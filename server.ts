@@ -39,7 +39,7 @@ app.use((req, res, next) => {
 });
 
 app.use((req, res, next) => {
-  //console.log(`${new Date().toISOString()} ${req.method} ${req.originalUrl} Origin:${req.headers.origin || "-"}`);
+  console.log(`${new Date().toISOString()} ${req.method} ${req.originalUrl} Origin:${req.headers.origin || "-"}`);
   next();
 });
 
