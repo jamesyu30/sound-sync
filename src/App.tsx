@@ -10,6 +10,7 @@ function App() {
     const fetchNewReleases = async () => {
       const response = await fetch(`${import.meta.env.VITE_API_URL}/api/newreleases`)
       const data = await response.json()
+      console.log("New Releases:", data)
       setNewReleases(data.filtered || [])
     }
 
