@@ -436,10 +436,6 @@ app.get('/test', (req: Request, res: Response) => {
   res.json({ message: 'Server is running!' });
 });
 
-app.get('/', (req: Request, res: Response) => {
-  res.send('Hello World!')
-})
-
 // serve client build
 app.use(express.static(path.join(process.cwd(), "dist", "client")));
 app.use((req, res) => {
