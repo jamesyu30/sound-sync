@@ -49,11 +49,11 @@ useEffect(() => {
       <div className="absolute inset-0 bg-gradient-to-br from-pink-400 via-yellow-300 to-purple-600 z-0" />
 
       <div className="relative z-10 w-full m-0 px-2 flex flex-col min-h-screen">
-        <header className="pt-12 text-center pb-80">
+        <header className="pt-12 text-center pb-60">
           <h1 className="text-5xl md:text-6xl font-extrabold text-white drop-shadow-lg">
             SoundSync
           </h1>
-          <p className="text-white/90 mt-2">
+          <p className="mt-4 mx-auto max-w-3xl text-center px-4 py-3 text-white/90 leading-relaxed md:leading-8 text-sm md:text-base lg:text-lg tracking-wide font-medium">
           Discover and share music with SoundSync!
           Explore the latest releases from Spotify, see what the community is talking about, and get song recommendations.
           Click on any song or artist to dive deeper into their profiles and explore related music. Create an account to share your own posts, rate tracks, and join the conversation.
