@@ -43,6 +43,14 @@ app.use((req, res, next) => {
   next();
 });
 
+app.use((req, res, next) => {
+  if (req.headers.accept && req.headers.accept.includes('application/json')) {
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+  }
+  next();
+});
+
 app.use(express.json());
 app.use(cookieParser());
 
