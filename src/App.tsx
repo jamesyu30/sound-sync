@@ -53,7 +53,11 @@ useEffect(() => {
           <h1 className="text-5xl md:text-6xl font-extrabold text-white drop-shadow-lg">
             SoundSync
           </h1>
-          <p className="text-white/90 mt-2">welcome to soundsync</p>
+          <p className="text-white/90 mt-2">
+          Discover and share music with SoundSync!
+          Explore the latest releases from Spotify, see what the community is talking about, and get song recommendations.
+          Click on any song or artist to dive deeper into their profiles and explore related music. Create an account to share your own posts, rate tracks, and join the conversation.
+          </p>
         </header>
 
         <div className="flex-1 flex items-end">
