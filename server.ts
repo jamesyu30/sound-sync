@@ -11,13 +11,6 @@ const app = express()
 const PORT = process.env.PORT || 4000
 dotenv.config();
 
-
-// serve client build
-app.use(express.static(path.join(process.cwd(), "dist", "client")));
-app.use((req, res) => {
-  res.sendFile(path.join(process.cwd(), "dist", "client", "index.html"));
-});
-
 const ALLOWED_ORIGINS = (process.env.CLIENT_ORIGIN ?? "http://localhost:5173").split(",").map(s => s.trim());
 app.use(cors({
   origin: (origin, callback) => {
@@ -446,6 +439,12 @@ app.get('/test', (req: Request, res: Response) => {
 app.get('/', (req: Request, res: Response) => {
   res.send('Hello World!')
 })
+
+// serve client build
+app.use(express.static(path.join(process.cwd(), "dist", "client")));
+app.use((req, res) => {
+  res.sendFile(path.join(process.cwd(), "dist", "client", "index.html"));
+});
 
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`)
