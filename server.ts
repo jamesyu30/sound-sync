@@ -466,7 +466,18 @@ app.get('/test', (req: Request, res: Response) => {
 
 // serve client build
 app.use(express.static(path.join(process.cwd(), "dist", "client")));
-app.use((req, res) => {
+
+// return JSON 404 for unknown API routes (so API requests don't get index.html)
+app.use((req, res, next) => {
+  const p = req.path || "";
+  if (p.startsWith("/api") || p.startsWith("/get") || p.startsWith("/search") || p.startsWith("/spotify") || p.startsWith("/cooccurrences") || p.startsWith("/makepost") || p.startsWith("/getposts") || p.startsWith("/getcomments") || p.startsWith("/getuserpicks") || p.startsWith("/login") || p.startsWith("/register")) {
+    return res.status(404).json({ error: "Not found" });
+  }
+  next();
+});
+
+// SPA fallback only for browser navigations (GET)
+app.get("/*", (req, res) => {
   res.sendFile(path.join(process.cwd(), "dist", "client", "index.html"));
 });
 
