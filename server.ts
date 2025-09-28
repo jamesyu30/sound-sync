@@ -477,7 +477,7 @@ app.use((req, res, next) => {
 });
 
 // SPA fallback only for browser navigations (GET)
-app.get("/*", (req, res) => {
+app.get(/.*/, (req, res) => {
   res.sendFile(path.join(process.cwd(), "dist", "client", "index.html"));
 });
 
