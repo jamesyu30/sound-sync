@@ -1,69 +1,32 @@
-# React + TypeScript + Vite
+# This project is hosted on Heroku [here](https://sound-sync-7e99d2ecfee8.herokuapp.com/)
+---
+# 🎵 SoundSync
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+**SoundSync** is a music discovery and community platform that uses the Spotify API.  
+Explore new releases, see what the community loves, and discover new songs using the recommendation algorithm.  
+Click on song titles or artist names to view detailed profiles, and create an account to share posts and rate tracks.  
 
-Currently, two official plugins are available:
+---
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## Features
 
-## Expanding the ESLint configuration
+- **Spotify Integration** – Browse new releases and popular songs in real time.  
+- **Smart Recommendations** – Discover new tracks based on song co-occurrence data.  
+- **Community Picks** – See what other users are listening to and rating highly.  
+- **Clickable Song & Artist Profiles** – Dive deeper into your favorite music with detailed views.  
+- **Search & Filter** – Fast, responsive search for songs and artists.  
+- **User Accounts** – Sign up to create posts, rate tracks, and join discussions.  
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+---
 
-```js
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+## Tech Stack
 
-      // Remove tseslint.configs.recommended and replace with this
-      ...tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      ...tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      ...tseslint.configs.stylisticTypeChecked,
+- **Frontend:** React + Vite + TailwindCSS  
+- **Backend:** Node.js + Express  
+- **Database:** PostgreSQL  
+- **Deployment:** Heroku  
+- **APIs:**  
+  - [Spotify Web API](https://developer.spotify.com/documentation/web-api/)  
+  - [Lyrics.ovh API](https://lyricsovh.docs.apiary.io/)
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
-
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
