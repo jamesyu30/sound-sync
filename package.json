@@ -5,8 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -p tsconfig.server.json && vite build",
-    "start": "node dist/server.js",
+    "build": "npx tsc -p tsconfig.server.json && vite build",
+    "start": "node dist/server/server.js",
     "heroku-postbuild": "npm run build",
     "lint": "eslint .",
     "preview": "vite preview",

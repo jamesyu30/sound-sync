@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import type { Request, Response } from "express";
 import dotenv from "dotenv";
+import path from "path";
 import jwt from "jsonwebtoken";
 import cookieParser from "cookie-parser";
 import { searchSong, getCooccurrencesBySongId, getSongDataBySongId, getSongId, getSongNameFromId, createPost, getPosts, addCommentToPost, getCommentsFromPost, getSongRatings, updateUserPicks, createUser, validateLogin } from "./db.js";
@@ -9,6 +10,13 @@ import { searchSong, getCooccurrencesBySongId, getSongDataBySongId, getSongId, g
 const app = express()
 const PORT = process.env.PORT || 4000
 dotenv.config();
+
+
+// serve client build
+app.use(express.static(path.join(process.cwd(), "dist", "client")));
+app.use((req, res) => {
+  res.sendFile(path.join(process.cwd(), "dist", "client", "index.html"));
+});
 
 const ALLOWED_ORIGINS = (process.env.CLIENT_ORIGIN ?? "http://localhost:5173").split(",").map(s => s.trim());
 app.use(cors({
