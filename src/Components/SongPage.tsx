@@ -141,7 +141,8 @@ export default function SongPage() {
           <h2 className="text-4xl font-extrabold mb-4 text-center text-purple-700 pb-8">Songs often played with {selectedSong?.label}</h2>
 
           <div className="overflow-hidden rounded-lg shadow-lg bg-gradient-to-b from-purple-100 via-pink-100 to-indigo-100">
-            <table className="min-w-full">
+            <div className="w-full overflow-x-auto">
+            <table className="min-w-[720px] w-full">
               <thead>
                 <tr className="bg-gradient-to-r from-purple-300 via-pink-200 to-indigo-200 text-purple-900">
                   <th className="py-3 px-4 text-left">#</th>
@@ -177,6 +178,7 @@ export default function SongPage() {
                 ))}
               </tbody>
             </table>
+            </div>
           </div>
         </>
       ) : (

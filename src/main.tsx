@@ -9,31 +9,38 @@ import SongProfile from './Components/SongProfile.tsx';
 import ArtistProfile from './Components/ArtistProfile.tsx';
 import Forum from './Components/Forum.tsx';
 import Register from './Components/Register.tsx';
+import ErrorPage from './Components/Error.tsx';
 
 const router = createBrowserRouter([
   {
     path: '/',
     element: <App />,
+    errorElement: <ErrorPage />
   },
   {
     path: '/songs',
     element: <SongPage />,
+    errorElement: <ErrorPage />
   },
   {
     path: '/songs/:id',
     element: <SongProfile />,
+    errorElement: <ErrorPage />
   },
   {
     path: '/artists/:artistId',
     element: <ArtistProfile />,
+    errorElement: <ErrorPage />
   },
   {
     path: '/discuss',
     element: <Forum />,
+    errorElement: <ErrorPage />
   },
   {
     path: '/login',
-    element: <Register />
+    element: <Register />,
+    errorElement: <ErrorPage />
   }
 ]);
 

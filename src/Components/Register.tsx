@@ -8,7 +8,7 @@ export default function Register() {
     const navigate = useNavigate();
 
     const tabClass = (active: boolean) =>
-      `w-full bg-white text-black font-semibold py-2 relative transition-all duration-200
+      `flex-1 text-center bg-white text-black font-semibold py-2 relative transition-all duration-200
        focus:outline-none focus-visible:outline-none
        border-b-4 ${active ? "border-b-purple-700" : "border-transparent"}
        ${active ? "shadow-[0_8px_24px_-12px_rgba(124,58,237,0.45)]" : "hover:bg-gray-50"}`;
@@ -56,8 +56,8 @@ export default function Register() {
     return (
         <>
         <Navbar />
-        <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-pink-400 via-yellow-300 to-purple-600 p-4">
-            <div className="flex flex-col max-w-[40%] w-[40%] max-h-[60%] h-[60%] mx-auto bg-white p-8 rounded-lg shadow-md">
+        <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-pink-400 via-yellow-300 to-purple-600">
+            <div className="w-full max-w-lg mx-auto bg-white p-6 sm:p-8 rounded-lg shadow-md">
 
              <div className="flex flex-row mb-6 pt-0 justify-center">
                 <button
@@ -79,11 +79,11 @@ export default function Register() {
             <form onSubmit={handleSubmit}>
                 <div className="mb-4">
                     <label htmlFor="username" className="block text-sm font-semibold text-black">Username</label>
-                    <input name="username" type="text" id="username" className="mt-1 block w-full border border-gray-300 rounded-md p-2 text-black" />
+                    <input name="username" type="text" id="username" className="mt-1 block w-full border border-gray-300 rounded-md p-2 text-black text-sm" />
                 </div>
                 <div className="mb-4">
                     <label htmlFor="password" className="block text-sm font-semibold text-black">Password</label>
-                    <input name="password" type="password" id="password" className="mt-1 block w-full border border-gray-300 rounded-md p-2 text-black" />
+                    <input name="password" type="password" id="password" className="mt-1 block w-full border border-gray-300 rounded-md p-2 text-black text-sm" />
                 </div>
                 <button type="submit" disabled={isSubmitting} className="w-full bg-purple-600 text-white font-semibold py-2 rounded-md hover:bg-purple-700 disabled:opacity-60">
                   {isSubmitting ? "Please wait…" : (isLogin ? "Login" : "Register")}

@@ -45,11 +45,11 @@ export default function SongProfile() {
           Song Profile
         </h1>
 
-        <div className="flex flex-row gap-6 items-start">
-          <section className="bg-white/10 backdrop-blur-md rounded-xl p-6 text-white shadow-lg w-1/4">
+         <div className="flex flex-col md:flex-row gap-6 items-start">
+           <section className="bg-white/10 backdrop-blur-md rounded-xl p-6 text-white shadow-lg w-full md:w-1/4">
             <div className="flex flex-col items-center">
-              {songData?.image_url ? (
-                <img src={songData?.image_url} alt="Album art" className="w-36 h-36 rounded-lg mb-4" />
+               {songData?.image_url ? (
+                <img src={songData?.image_url} alt="Album art" className="w-28 h-28 md:w-36 md:h-36 rounded-lg mb-4" />
               ) : (
                 <div className="w-36 h-36 rounded-lg bg-white/20 mb-4 flex items-center justify-center">
                   <span className="text-sm text-white/80">Album art</span>
@@ -73,13 +73,13 @@ export default function SongProfile() {
             </div>
           </section>
 
-          <main className="md:w-2/3 bg-white/10 backdrop-blur-md rounded-xl p-6 text-white shadow-lg">
+          <main className="w-full md:w-2/3 bg-white/10 backdrop-blur-md rounded-xl p-6 text-white shadow-lg">
             <div className="flex items-center justify-between">
               <h2 className="text-2xl font-semibold">Lyrics</h2>
               <div className="text-sm text-white/80">{lyrics ? "Loaded" : "Loading..."}</div>
             </div>
 
-            <div className="mt-4 max-h-[70vh] overflow-auto pr-2">
+            <div className="mt-4 max-h-[60vh] md:max-h-[70vh] overflow-auto pr-2">
               {lyrics ? (
                 <pre className="whitespace-pre-wrap text-white text-sm">{lyrics}</pre>
               ) : (

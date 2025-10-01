@@ -42,23 +42,23 @@ export default function ArtistProfile() {
           </header>
 
           <div className="flex flex-col md:flex-row gap-6">
-            <aside className="md:w-1/3 bg-white/10 backdrop-blur-md rounded-xl p-6 text-white shadow-lg">
+             <aside className="w-full md:w-1/3 bg-white/10 backdrop-blur-md rounded-xl p-6 text-white shadow-lg">
               <div className="flex flex-col items-center">
 
-                {artistData?.image_url ? (
-                  <img src={artistData?.image_url} alt="Artist" className="w-40 h-40 rounded-lg mb-4" />
-                ) : ( 
-                  <div className="w-40 h-40 rounded-lg bg-white/20 mb-4 flex items-center justify-center">
+               {artistData?.image_url ? (
+                  <img src={artistData?.image_url} alt="Artist" className="w-28 h-28 md:w-40 md:h-40 rounded-lg mb-4 object-cover" />
+                ) : (
+                  <div className="w-28 h-28 md:w-40 md:h-40 rounded-lg bg-white/20 mb-4 flex items-center justify-center">
                     <span className="text-sm text-white/80">Artist Image</span>
                   </div>
                 )}
 
-                <h2 className="text-xl font-bold text-white text-center">{artistData?.name}</h2>
+                <h2 className="text-lg md:text-xl font-bold text-white text-center truncate max-w-full">{artistData?.name}</h2>
                 <div className="text-sm text-white/80 mt-2">{artistData?.followers || "—"} followers</div>
 
                 <div className="flex flex-wrap gap-2 mt-3 justify-center">
-                  {artistData?.genres.map((genre) => (
-                    <span key={genre} className="text-xs px-2 py-0.5 rounded-full bg-white/10 text-white/90">
+                  {artistData?.genres?.map((genre) => (
+                    <span key={genre} className="text-[11px] px-2 py-0.5 rounded-full bg-white/10 text-white/90">
                       {genre}
                     </span>
                   ))}
@@ -75,33 +75,33 @@ export default function ArtistProfile() {
               </a>
             </aside>
 
-            <main className="md:w-2/3 bg-white/10 backdrop-blur-md rounded-xl p-6 text-white shadow-lg">
+            <main className="w-full md:w-2/3 bg-white/10 backdrop-blur-md rounded-xl p-4 md:p-6 text-white shadow-lg">
               <div className="flex items-center justify-between">
                 <h3 className="text-2xl font-semibold">Top Tracks</h3>
                 <div className="text-sm text-white/80">{topTracks?.length || 0} tracks</div>
               </div>
 
               <div className="mt-4 space-y-3">
-                {topTracks?.map((track) => (
-                  <a key={track.spotify_url ?? track.album_name} href={track.spotify_url ?? ""} target="_blank" rel="noopener noreferrer" className="block">
-                  <div
-                    key={track.spotify_url}
-                    className="flex items-center gap-4 p-3 rounded-lg hover:bg-white/5 transition-colors cursor:pointer"
-                  >
-                    {track.image_url ? (
-                      <img src={track.image_url} alt={track.song_name} className="w-14 h-14 rounded-md" />
-                    ) : (
-                      <div className="w-14 h-14 rounded-md bg-white/20" />
-                    )}
+                <div className="space-y-2 max-h-[60vh] overflow-auto pr-2">
+                  {topTracks?.map((track) => (
+                    <a key={track.spotify_url ?? track.album_name} href={track.spotify_url ?? ""} target="_blank" rel="noopener noreferrer" className="block">
+                      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 p-3 rounded-lg hover:bg-white/5 transition-colors">
+                        {track.image_url ? (
+                          <img src={track.image_url} alt={track.song_name} className="w-16 h-16 sm:w-14 sm:h-14 rounded-md flex-shrink-0 object-cover" />
+                        ) : (
+                          <div className="w-16 h-16 sm:w-14 sm:h-14 rounded-md bg-white/20 flex-shrink-0" />
+                        )}
 
-                    <div className="flex-1 min-w-0">
-                      <div className="truncate font-medium text-white">{track.song_name}</div>
-                      <div className="text-sm text-white/80 truncate mt-1">{track.album_name} • {track.artists}</div>
-                    </div>
-                    <div className="ml-4 text-sm text-white/80">{Math.floor(track.duration_ms / 60000)} : {String(Math.floor((track.duration_ms / 1000) % 60)).padStart(2, '0')}</div>
-                  </div>
-                  </a>
-                ))}
+                        <div className="flex-1 min-w-0">
+                          <div className="truncate font-medium text-white">{track.song_name}</div>
+                          <div className="text-sm text-white/80 truncate mt-1">{track.album_name} • {track.artists}</div>
+                        </div>
+
+                        <div className="text-sm text-white/80 sm:ml-4 mt-2 sm:mt-0">{Math.floor(track.duration_ms / 60000)}:{String(Math.floor((track.duration_ms / 1000) % 60)).padStart(2, '0')}</div>
+                      </div>
+                    </a>
+                  ))}
+                </div>
               </div>
             </main>
           </div>

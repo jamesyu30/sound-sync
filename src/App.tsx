@@ -48,7 +48,7 @@ useEffect(() => {
       <div className="relative min-h-screen">
       <div className="absolute inset-0 bg-gradient-to-br from-pink-400 via-yellow-300 to-purple-600 z-0" />
 
-      <div className="relative z-10 w-full m-0 px-2 flex flex-col min-h-screen">
+      <div className="relative z-10 w-full m-0 px-4 flex flex-col min-h-screen">
         <header className="pt-12 text-center pb-60">
           <h1 className="text-5xl md:text-6xl font-extrabold text-white drop-shadow-lg">
             SoundSync
@@ -60,57 +60,51 @@ useEffect(() => {
           </p>
         </header>
 
-        <div className="flex-1 flex items-end">
-          <div className="w-[90%] bg-gradient-to-b from-purple-100 via-pink-100 to-yellow-100 rounded-xl shadow-2xl p-8 mx-auto min-h-[120vh]">
-            <h2 className="text-4xl font-bold text-purple-900 mb-8 text-center">
+        <div className="flex-1 flex items-start pb-10">
+          <div className="w-full max-w-5xl bg-gradient-to-b from-purple-100 via-pink-100 to-yellow-100 rounded-xl shadow-2xl p-6 md:p-8 mx-auto">
+            <h2 className="text-3xl md:text-4xl font-bold text-purple-900 mb-6 text-center">
               Explore
             </h2>
-            <section className="flex flex-row justify-around items-start flex-wrap">
-              <div className="flex flex-col w-9/20 bg-white rounded-lg p-4 m-2">
-                <h3 className="text-xl font-bold text-purple-900 text-center">New Releases</h3>
-
-                {newReleases.length === 0 ? (
-                  <p className="text-sm text-gray-500 mt-4 text-center">No new releases available.</p>
-                ) : (
-                  newReleases.map((data) => (
+            <section className="flex flex-col md:flex-row md:justify-between gap-6">
+              <div className="w-full md:w-[48%] bg-white rounded-lg p-4">
+                <h3 className="text-lg md:text-xl font-bold text-purple-900 text-center">New Releases</h3>
+                <div className="mt-4 space-y-3 max-h-[60vh] overflow-auto pr-2">
+                  {newReleases.length === 0 ? (
+                    <p className="text-sm text-gray-500 mt-4 text-center">No new releases available.</p>
+                  ) : newReleases.map((data) => (
                     <a key={data.spotify_url ?? data.album_name} href={data.spotify_url ?? ""} target="_blank" rel="noopener noreferrer" className="block">
-                    <div className='flex flex-row mt-8 p-4 bg-white/20 backdrop-blur-md border border-black/60 rounded-lg hover:scale-105 transition-transform duration-200 cursor-pointer'>
-                      <img src={data.image_url} alt="New Releases" className="w-12 h-12 rounded-lg" />
-                      <div className='flex flex-col ml-4'>
-                        <span className="text-large text-black font-bold">{data.album_name}</span>
-                        <span className="text-base text-gray-400 font-semibold">{data.artist_name}</span>
+                      <div className='flex flex-col sm:flex-row items-start sm:items-center gap-3 mt-3 p-3 bg-white/20 backdrop-blur-md border border-black/10 rounded-lg hover:scale-101 transition-transform duration-150'>
+                        <img src={data.image_url} alt="New Releases" className="w-14 h-14 sm:w-12 sm:h-12 rounded-lg flex-shrink-0 object-cover" />
+                        <div className='flex-1 min-w-0'>
+                          <div className="text-sm md:text-base text-black font-bold truncate">{data.album_name}</div>
+                          <div className="text-xs md:text-sm text-gray-500 truncate mt-1">{data.artist_name}</div>
+                        </div>
+                        <div className="text-xs text-gray-600 hidden sm:block">{data.release_date}</div>
                       </div>
-                      <div className="ml-auto">
-                        <span className="text-sm text-black">{data.release_date}</span>
-                      </div>
-                    </div>
                     </a>
-                  )
-                  ))
-                }
-
+                  ))}
+                </div>
               </div>
-              <div className="flex flex-col w-9/20 bg-white rounded-lg p-4 m-2">
-                <h3 className="text-xl font-bold text-purple-900 text-center">User Picks</h3>
 
-                {userPicks.length === 0 ? (
-                  <p className="text-sm text-gray-500 mt-4 text-center">No user picks available.</p>
-                ) : (
-                  userPicks.map((pick, index) => (
-                    <div key={index} className='flex flex-row mt-8 p-4 bg-white/20 backdrop-blur-md border border-black/60 rounded-lg hover:scale-105 transition-transform duration-200 cursor-pointer'>
-                      <div className={`w-12 h-12 flex items-center justify-center rounded-lg outline-1 text-black text-lg font-bold ${ratingBg(pick.avg_rating)}`}>{pick.avg_rating}</div>
-                      <div className='flex flex-col ml-4'>
-                        <span className="text-large text-black font-bold">
-                          <Link to={`/songs/${pick.song_id}`} className='hover:underline'>{pick.song_name}</Link>
-                        </span>
-                        <span className="text-base text-gray-400 font-semibold">
-                          <Link to={`/artists/${pick.artist_id}`} className='hover:underline'>{pick.artist_name}</Link>
-                          </span>
+              <div className="w-full md:w-[48%] bg-white rounded-lg p-4">
+                <h3 className="text-lg md:text-xl font-bold text-purple-900 text-center">User Picks</h3>
+                <div className="mt-4 space-y-3 max-h-[60vh] overflow-auto pr-2">
+                  {userPicks.length === 0 ? (
+                    <p className="text-sm text-gray-500 mt-4 text-center">No user picks available.</p>
+                  ) : userPicks.map((pick, index) => (
+                    <Link key={index} to={`/songs/${pick.song_id}`} className="block" >
+                      <div className='flex flex-col sm:flex-row items-start sm:items-center gap-3 mt-3 p-3 bg-white/20 backdrop-blur-md border border-black/10 rounded-lg hover:scale-101 transition-transform duration-150'>
+                        <div className={`w-12 h-12 flex items-center justify-center rounded-lg text-black text-sm font-bold ${ratingBg(pick.avg_rating)}`}>{pick.avg_rating}</div>
+                        <div className='flex-1 min-w-0'>
+                          <div className="text-sm md:text-base text-black font-bold truncate">{pick.song_name}</div>
+                          <div className="text-xs md:text-sm text-gray-500 truncate mt-1">
+                            <Link to={`/artists/${pick.artist_id}`} className='hover:underline text-gray-500'>{pick.artist_name}</Link>
+                          </div>
+                        </div>
                       </div>
-                    </div>
-                  ))
-                )}
-
+                    </Link>
+                  ))}
+                </div>
               </div>
             </section>
           </div>

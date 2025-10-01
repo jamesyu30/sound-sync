@@ -38,10 +38,6 @@ app.use((req, res, next) => {
    next();
 });
 
-app.use((req, res, next) => {
-  console.log(`${new Date().toISOString()} ${req.method} ${req.originalUrl} Origin:${req.headers.origin || "-"}`);
-  next();
-});
 
 app.use((req, res, next) => {
   if (req.headers.accept && req.headers.accept.includes('application/json')) {
@@ -467,9 +463,9 @@ app.get('/test', (req: Request, res: Response) => {
 // serve client build
 app.use(express.static(path.join(process.cwd(), "dist", "client")));
 
-// app.get("/.*/", (req, res) => {
-//   res.sendFile(path.join(process.cwd(), "dist", "client", "index.html"));
-// });
+app.get(/^(?!\/api).*/, (req, res) => {
+  res.sendFile(path.join(process.cwd(), "dist", "client", "index.html"));
+});
 
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`)

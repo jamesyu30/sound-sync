@@ -22,7 +22,7 @@ const pool = connectionString
     });
 
 pool.on('connect', () => {
-  console.log('Connected to the database');
+  //console.log('Connected to the database');
 });
 
 async function createPairTable(){
